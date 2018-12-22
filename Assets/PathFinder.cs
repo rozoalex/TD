@@ -9,46 +9,44 @@ public class PathFinder : MonoBehaviour {
 
     Vector2[] directions = { Vector2.up, Vector2.down, Vector2.right, Vector2.left };
 
-    List<WayPoint> shortestPath = new List<WayPoint>();
-
     [SerializeField] WayPoint start, end;
 
     // Use this for initialization
     void Start () {
         LoadBlocks();
         ColorStartAndEnd();
-        StartCoroutine(ExploreNeighbours());
 	}
 
-    IEnumerator ExploreNeighbours()
+    private List<WayPoint> ExploreNeighbours()
     {
-        Path path = FindPath(start);
+        List<WayPoint> shortestPath = new List<WayPoint>();
+        WayPoint path = FindShortestPath(start);
         while (path != null) {
-            shortestPath.Insert(0, path.current);
-            grid[path.current.GetGridPos()].SetTopColor(Color.white);
+            shortestPath.Insert(0, path);
             path = path.prev;
-            yield return new WaitForSeconds(0.5f);
         }
+        return shortestPath;
     }
 
-    private Path FindPath(WayPoint start)
+    private WayPoint FindShortestPath(WayPoint start)
     {
         // Initialize BFS
-        Stack<Path> paths = new Stack<Path>();
+        Stack<WayPoint> paths = new Stack<WayPoint>();
         HashSet<Vector2> visited = new HashSet<Vector2>();
-        paths.Push(new Path(null, start));
+        paths.Push(start);
         // Repeat while paths not empty
         while (paths.Count > 0) {
-            Stack<Path> nextPaths = new Stack<Path>();
+            Stack<WayPoint> nextPaths = new Stack<WayPoint>();
             while (paths.Count > 0) {
-                Path currentPath = paths.Pop();
-                print(currentPath.current);
-                if (currentPath.current == end) { return currentPath; } 
-                Vector2 currentPos = currentPath.current.GetGridPos();
+                WayPoint currentPath = paths.Pop();
+                print(currentPath.GetGridPos());
+                if (currentPath == end) { return currentPath; } 
+                Vector2 currentPos = currentPath.GetGridPos();
                 foreach (Vector2 direction in directions) {
                     Vector2 next = currentPos + direction;
                     if (grid.ContainsKey(next) && !visited.Contains(next)) {
-                        nextPaths.Push(new Path(currentPath, grid[next]));
+                        grid[next].prev = currentPath;
+                        nextPaths.Push(grid[next]);
                     }
                 }
                 visited.Add(currentPos);
@@ -56,15 +54,6 @@ public class PathFinder : MonoBehaviour {
             paths = nextPaths;
         }
         return null;
-    }
-
-    private class Path {
-        public Path prev;
-        public WayPoint current;
-        public Path(Path prev, WayPoint current) {
-            this.prev = prev;
-            this.current = current;
-        }
     }
 
     private void ColorStartAndEnd()
@@ -88,8 +77,8 @@ public class PathFinder : MonoBehaviour {
 
     }
 
-    // Update is called once per frame
-    void Update () {
-		
-	}
+    public List<WayPoint> GetShortestPath() {
+        LoadBlocks();
+        return ExploreNeighbours();
+    }
 }

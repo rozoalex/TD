@@ -8,15 +8,7 @@ public class WayPoint: MonoBehaviour {
 
     const int gridSize = 10;
 
-	// Use this for initialization
-	void Start() {
-		
-	}
-	
-	// Update is called once per frame
-	void Update() {
-		
-	}
+    public WayPoint prev;
 
     public int GetGridSize() { return gridSize; }
 
